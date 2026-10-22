@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1118">
+  <meta name="description" content="A practical demonstration of deterministic finite automata for vehicle registration validation and smart parking management.">
+  <title>Parkwise — DFA Smart Parking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body class="dark">
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#home" aria-label="Parkwise home">
+        <span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 28 9.5v13L16 29 4 22.5v-13L16 3Z"/><path d="M12 23V10h5.5a4.5 4.5 0 0 1 0 9H12m0-5h6"/></svg></span>
+        <span><strong>parkwise @ VGPCR </strong><small>SMART MOBILITY </small></span>
+      </a>
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="nav-list" aria-label="Main navigation">
+        <a href="#home" class="nav-link active" data-page="home"><span class="nav-icon">⌂</span>Project home</a>
+        <a href="#dashboard" class="nav-link" data-page="dashboard"><span class="nav-icon">▤</span>Dashboard</a>
+        <a href="#validator" class="nav-link" data-page="validator"><span class="nav-icon">⌕</span>Plate validator</a>
+        <a href="#simulator" class="nav-link" data-page="simulator"><span class="nav-icon">⟳</span>DFA simulator</a>
+        <a href="#operations" class="nav-link" data-page="operations"><span class="nav-icon">↔</span>Entry &amp; exit</a>
+        <a href="#slots" class="nav-link" data-page="slots"><span class="nav-icon">▦</span>Parking slots</a>
+        <a href="#analytics" class="nav-link" data-page="analytics"><span class="nav-icon">⌁</span>Analytics</a>
+        <a href="#testing" class="nav-link" data-page="testing"><span class="nav-icon">✓</span>Test suite</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-project">
+        <div class="project-icon">Σ</div>
+        <div><strong>Automata in action</strong><span>Formal languages, real spaces.</span></div>
+      </div>
+      <div class="sidebar-footer"><span class="live-dot"></span>Local demo <span class="footer-separator">·</span> SQLite</div>
+    </aside>
+
+    <div class="main-column">
+      <header class="topbar">
+        <button class="mobile-menu icon-button" id="menu-toggle" aria-label="Toggle navigation">☰</button>
+        <div class="breadcrumbs"><span>Workspace</span><span class="crumb-divider">/</span><strong id="breadcrumb-current">Overview</strong></div>
+        <div class="topbar-right">
+          <span class="today-label" id="today-label"></span>
+          <button class="icon-button theme-toggle" id="theme-toggle" title="Switch to light mode" aria-label="Switch to light mode">☼</button>
+          <span class="avatar">PW</span>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="page active" id="page-home">
+          <div class="landing-hero">
+            <div class="landing-copy">
+              <div class="eyebrow"><span class="live-dot"></span> FORMAL LANGUAGES × SMART MOBILITY</div>
+              <h1>A finite automaton.<br>A smarter way to park<span class="title-period">.</span></h1>
+              <p>See how a deterministic finite automaton reads a vehicle registration character by character—and turns a formal language into a practical parking decision.</p>
+              <div class="landing-actions"><a class="button button-primary" href="#validator">Start validation <span>→</span></a><a class="landing-secondary" href="#simulator">Explore the DFA <span>↗</span></a></div>
+              <div class="landing-pattern"><span>DEMO LANGUAGE</span><code>[A–Z]{2}[0–9]{2}[A–Z]{1,2}[0–9]{4}</code></div>
+            </div>
+            <article class="landing-preview">
+              <div class="preview-top"><div><span class="preview-eyebrow"><i class="live-dot"></i> LOT A · LIVE PREVIEW</span><strong>Parking at a glance</strong></div><span class="preview-icon">▦</span></div>
+              <div class="preview-occupancy"><div><strong id="home-occupancy">—</strong><span>spaces occupied</span></div><span id="home-capacity">— total spaces</span></div>
+              <div class="preview-bar"><span id="home-occupancy-fill"></span></div>
+              <div class="preview-slots" id="home-slot-preview" aria-label="Preview of live parking availability"></div>
+              <div class="preview-legend"><span><i class="legend-dot green"></i><span id="home-available">— available</span></span><span><i class="legend-dot navy"></i>Occupied</span></div>
+              <a href="#dashboard" class="preview-link">Open live dashboard <span>→</span></a>
+            </article>
+          </div>
+          <div class="landing-section-heading"><div><div class="eyebrow">THE VALIDATION WORKFLOW</div><h2>From string to parking decision</h2><p>Each step has a transparent, testable job.</p></div></div>
+          <div class="workflow-grid">
+            <article class="workflow-card"><span class="workflow-index">01</span><span class="workflow-icon">⌨</span><strong>Registration input</strong><p>Enter a plate. Normalize its case and optional separators.</p><span class="workflow-code">TS09AB1234</span></article>
+            <span class="workflow-arrow">→</span>
+            <article class="workflow-card"><span class="workflow-index">02</span><span class="workflow-icon">⟳</span><strong>DFA processing</strong><p>Read each symbol and follow one deterministic transition.</p><span class="workflow-code">q₀ → q₁ → … → q₁₀</span></article>
+            <span class="workflow-arrow">→</span>
+            <article class="workflow-card"><span class="workflow-index">03</span><span class="workflow-icon">✓</span><strong>Format decision</strong><p>Accept only if input ends in the accepting state.</p><span class="workflow-code">q₁₀ = ACCEPT</span></article>
+            <span class="workflow-arrow">→</span>
+            <article class="workflow-card"><span class="workflow-index">04</span><span class="workflow-icon">▦</span><strong>Operator-approved parking</strong><p>Assign an available space after explicit operator approval.</p><span class="workflow-code">SQLite · live slots</span></article>
+          </div>
+          <div class="landing-innovation">
+            <div class="innovation-intro"><div class="eyebrow">WHY THIS PROJECT IS DIFFERENT</div><h2>Automata you can actually see.</h2><p>Not just a valid/invalid form. Follow real transitions, inspect the trace, and connect formal language recognition to a working parking workflow.</p><a href="#simulator">Step through a sample DFA <span>→</span></a></div>
+            <div class="innovation-features"><article><span>01</span><div><strong>Real transition trace</strong><p>Step forward, back, or play the exact server-computed DFA transitions.</p></div></article><article><span>02</span><div><strong>Complete, deterministic rules</strong><p>Every state handles LETTER, DIGIT, and OTHER—including a rejecting sink.</p></div></article><article><span>03</span><div><strong>Working parking operations</strong><p>Validated, approved entries update SQLite records, spaces, and analytics.</p></div></article></div>
+          </div>
+          <div class="landing-disclaimer"><span>ⓘ</span><p>This academic demo checks registration <strong>format only</strong>. It does not confirm official registration, vehicle ownership, or identity, and does not access government records.</p><a href="#testing">See the test suite ↗</a></div>
+        </section>
+
+        <section class="page" id="page-dashboard">
+          <div class="welcome-row">
+            <div><div class="eyebrow"><span class="live-dot"></span> PARKING OPERATIONS</div><h1>Good day, operator<span class="title-period">.</span></h1><p class="page-subtitle">Your lot at a glance. Every number, from live SQLite records.</p></div>
+            <a class="button button-primary" href="#validator"><span>＋</span> Validate a vehicle</a>
+          </div>
+          <div class="full-banner hidden" id="full-banner"><span class="banner-icon">!</span><div><strong>Parking lot is full</strong><span>All parking spaces are currently occupied. Record an exit to free a space.</span></div><a href="#operations">Manage exits →</a></div>
+          <div class="stats-grid">
+            <article class="stat-card"><div class="stat-head"><span>Total spaces</span><span class="stat-icon icon-blue">▦</span></div><div class="stat-value" id="stat-total">—</div><div class="stat-foot">Configured parking capacity</div></article>
+            <article class="stat-card"><div class="stat-head"><span>Available now</span><span class="stat-icon icon-green">↗</span></div><div class="stat-value" id="stat-available">—</div><div class="stat-foot"><span class="status-dot"></span>Ready for incoming vehicles</div></article>
+            <article class="stat-card"><div class="stat-head"><span>Occupied</span><span class="stat-icon icon-amber">▣</span></div><div class="stat-value" id="stat-occupied">—</div><div class="stat-foot"><span id="occupancy-label">—</span> lot occupancy</div></article>
+            <article class="stat-card"><div class="stat-head"><span>Entries today</span><span class="stat-icon icon-violet">↘</span></div><div class="stat-value" id="stat-today">—</div><div class="stat-foot">Operator-approved arrivals</div></article>
+          </div>
+          <div class="dashboard-grid">
+            <article class="panel occupancy-panel"><div class="panel-heading"><div><h2>Live occupancy</h2><p>Current space utilization</p></div><a class="text-link" href="#slots">View floor plan ↗</a></div><div class="occupancy-body"><div class="donut-wrap"><canvas id="occupancy-chart" aria-label="Current parking occupancy chart"></canvas><div class="donut-center"><strong id="occupancy-center">—</strong><span>occupied</span></div></div><div class="occupancy-legend"><div><span class="legend-dot green"></span><span>Available</span><strong id="legend-available">—</strong></div><div><span class="legend-dot navy"></span><span>Occupied</span><strong id="legend-occupied">—</strong></div><div class="occupancy-bar"><span id="occupancy-bar-fill"></span></div><small id="occupancy-caption">Loading live lot data…</small></div></div></article>
+            <article class="panel activity-panel"><div class="panel-heading"><div><h2>Recent activity</h2><p>Latest vehicle movements</p></div><a class="text-link" href="#operations">Manage ↗</a></div><div class="activity-list" id="recent-activity"></div></article>
+            <article class="panel hourly-panel"><div class="panel-heading"><div><h2>Today's arrivals</h2><p>Vehicle entries by hour</p></div><span class="chart-caption">LOCAL TIME</span></div><div class="chart-box"><canvas id="hourly-chart" aria-label="Vehicle arrivals by hour"></canvas></div></article>
+          </div>
+          <div class="concept-strip"><div class="concept-icon">⟶</div><div><strong>From regular expressions to real parking decisions</strong><span>Watch a deterministic finite automaton read every character, then route approved formats into an operator-confirmed parking workflow.</span></div><a href="#simulator">Explore the DFA <span>→</span></a></div>
+        </section>
+
+        <section class="page" id="page-validator">
+          <div class="page-heading"><div class="eyebrow">FORMAL LANGUAGE · INPUT VALIDATION</div><h1>Plate validator<span class="title-period">.</span></h1><p class="page-subtitle">Run registration strings through the very same deterministic automaton used for parking entry.</p></div>
+          <div class="two-column-layout">
+            <article class="panel form-panel"><div class="panel-heading"><div><h2>Registration format</h2><p>Letters are uppercased; spaces and hyphens are ignored.</p></div><span class="tag tag-blue">LIVE DFA</span></div><form id="validator-form"><label for="validator-input">Vehicle registration</label><div class="input-row"><span class="input-prefix">#</span><input id="validator-input" name="plate" autocomplete="off" spellcheck="false" maxlength="24" placeholder="e.g. TS09AB1234"><button class="clear-input" type="button" id="validator-clear" aria-label="Clear input">×</button></div><div class="format-hint"><span>EXPECTED FORMAT</span><code>LL DD L{1,2} DDDD</code></div><button class="button button-primary full-button" type="submit">Run DFA validation <span>→</span></button></form><div id="validation-result" class="result-box hidden" aria-live="polite"></div><div class="disclaimer"><span>ⓘ</span><p>This checks <strong>format only</strong>—not official registration, ownership, or vehicle identity. No government records are accessed.</p></div></article>
+            <article class="panel guide-panel"><div class="panel-heading"><div><h2>Pattern breakdown</h2><p>Each position has an expected symbol class.</p></div></div><div class="pattern-row"><span class="pattern-token token-letter">L</span><span class="pattern-token token-letter">L</span><span class="pattern-token token-digit">D</span><span class="pattern-token token-digit">D</span><span class="pattern-optional">L</span><span class="pattern-optional">L</span><span class="pattern-token token-digit">D</span><span class="pattern-token token-digit">D</span><span class="pattern-token token-digit">D</span><span class="pattern-token token-digit">D</span></div><div class="pattern-legend"><span><i class="legend-dot blue"></i>L = letter</span><span><i class="legend-dot amber"></i>D = digit</span><span><i class="legend-dot muted"></i>one or two L</span></div><div class="example-card"><div><span class="example-label">VALID EXAMPLE</span><code>TS09AB1234</code></div><button class="button button-soft" id="validator-example" type="button">Try example</button></div><div class="section-divider"></div><div class="panel-heading compact-heading"><div><h2>Quick checks</h2><p>Click a plate to run it through the DFA.</p></div></div><div class="quick-tests"><button class="quick-test" data-plate="TS09AB1234"><span class="test-state pass">✓</span><code>TS09AB1234</code><span class="test-label">valid</span></button><button class="quick-test" data-plate="KA01A1234"><span class="test-state pass">✓</span><code>KA01A1234</code><span class="test-label">valid</span></button><button class="quick-test" data-plate="TS9AB123"><span class="test-state fail">×</span><code>TS9AB123</code><span class="test-label">invalid</span></button><button class="quick-test" data-plate="1234TSAB09"><span class="test-state fail">×</span><code>1234TSAB09</code><span class="test-label">invalid</span></button></div></article>
+          </div>
+        </section>
+
+        <section class="page" id="page-simulator">
+          <div class="page-heading"><div class="eyebrow">AUTOMATA THEORY · INTERACTIVE TRACE</div><h1>DFA simulator<span class="title-period">.</span></h1><p class="page-subtitle">See the actual transition function process one character at a time.</p></div>
+          <article class="panel simulator-input-panel"><form id="simulator-form"><label for="simulator-input">Input string</label><div class="simulator-controls-row"><div class="input-row"><span class="input-prefix">›</span><input id="simulator-input" autocomplete="off" spellcheck="false" maxlength="24" value="TS09AB1234"><button class="clear-input" type="button" id="simulator-clear" aria-label="Clear input">×</button></div><button class="button button-primary" type="submit">Load string</button><button class="button button-soft" id="simulator-example" type="button">Try invalid</button></div></form><div class="simulator-meta"><span>FORMAT <code>LL DD L{1,2} DDDD</code></span><span>ALPHABET <code>{A–Z, 0–9, other}</code></span><span>STATES <code>q₀–q₁₀, q⊥</code></span></div></article>
+          <article class="panel diagram-panel"><div class="panel-heading"><div><h2>State transition diagram</h2><p>Solid arrows show valid-pattern transitions; any unlisted symbol moves to q⊥.</p></div><div class="diagram-legend"><span><i class="legend-line"></i>Transition</span><span><i class="legend-line active-line"></i>Active path</span><span><i class="legend-circle"></i>Accepting</span></div></div><div class="diagram-scroll"><svg id="dfa-diagram" viewBox="0 0 1260 300" role="img" aria-label="DFA state transition diagram"></svg></div><div class="diagram-note"><span>↳</span><span>Every state also transitions to <strong>q⊥</strong> on an unexpected symbol class. q⊥ loops on every input. Accepting q₁₀ has no valid continuation.</span></div></article>
+          <div class="simulator-grid">
+            <article class="panel step-panel"><div class="panel-heading"><div><h2>Trace controls</h2><p id="trace-summary">Load a registration to begin.</p></div><span class="tag tag-green" id="current-state-tag">q₀ · START</span></div><div class="character-track" id="character-track" aria-label="Input characters"></div><div class="playback-controls"><button class="button button-soft" id="step-back" type="button" aria-label="Previous step">← Prev</button><button class="button button-primary play-button" id="step-play" type="button">▶ Play</button><button class="button button-soft" id="step-forward" type="button">Next →</button><button class="button button-quiet" id="step-reset" type="button">Reset</button></div><div class="step-progress"><span id="step-progress-fill"></span></div><div class="step-counter"><span id="step-counter-label">0 / 0 transitions</span><span id="trace-outcome">Awaiting input</span></div></article>
+            <article class="panel transition-panel"><div class="panel-heading"><div><h2>Transition log</h2><p>Generated directly by the DFA.</p></div><span class="tag tag-gray" id="log-count">0 STEPS</span></div><div class="transition-table-wrap"><table class="transition-table"><thead><tr><th>#</th><th>INPUT</th><th>CLASS</th><th>FROM</th><th>TO</th></tr></thead><tbody id="transition-log"></tbody></table></div></article>
+          </div>
+          <article class="panel theory-note"><div class="theory-symbol">δ</div><div><strong>Complete deterministic transition function</strong><p>For every state and each symbol class <code>{LETTER, DIGIT, OTHER}</code>, δ defines exactly one next state. Unexpected input reaches the rejecting sink q⊥; reaching q₁₀ at end-of-input accepts.</p></div></article>
+        </section>
+
+        <section class="page" id="page-operations">
+          <div class="page-heading"><div class="eyebrow">PARKING OPERATIONS · OPERATOR APPROVAL</div><h1>Entry &amp; exit<span class="title-period">.</span></h1><p class="page-subtitle">Validate formats, assign spaces, and record vehicle movements in SQLite.</p></div>
+          <div class="operations-grid">
+            <article class="panel operation-panel"><div class="operation-top"><span class="operation-icon entry-icon">↘</span><span class="tag tag-green">ARRIVAL</span></div><h2>Register vehicle entry</h2><p>Only a DFA-valid format can proceed. An operator must approve every entry.</p><form id="entry-form"><label for="entry-plate">Vehicle registration</label><div class="input-row"><span class="input-prefix">#</span><input id="entry-plate" autocomplete="off" spellcheck="false" placeholder="TS09AB1234" maxlength="24"></div><div class="approval-row"><input id="operator-approved" type="checkbox"><label for="operator-approved">I confirm this operator-approved demo entry.</label></div><button class="button button-primary full-button" id="entry-submit" type="submit">Validate &amp; assign space <span>→</span></button></form><div class="operation-message hidden" id="entry-message" aria-live="polite"></div><div class="operator-note"><strong>Format ≠ identity</strong><span>A valid format does not verify the vehicle or its registration.</span></div></article>
+            <article class="panel operation-panel"><div class="operation-top"><span class="operation-icon exit-icon">↗</span><span class="tag tag-amber">DEPARTURE</span></div><h2>Record vehicle exit</h2><p>Look up an active parking record to close its visit and release its space.</p><form id="exit-form"><label for="exit-plate">Vehicle registration</label><div class="input-row"><span class="input-prefix">#</span><input id="exit-plate" autocomplete="off" spellcheck="false" placeholder="TS09AB1234" maxlength="24"></div><button class="button button-dark full-button" type="submit">Find active vehicle <span>→</span></button></form><div class="operation-message hidden" id="exit-message" aria-live="polite"></div></article>
+          </div>
+          <article class="panel active-vehicles-panel"><div class="panel-heading"><div><h2>Currently parked</h2><p>Active operator-approved parking records</p></div><span class="tag tag-blue" id="active-count">0 VEHICLES</span></div><div class="table-scroll"><table class="data-table"><thead><tr><th>REGISTRATION</th><th>PARKING SPACE</th><th>ENTRY TIME</th><th>STATUS</th></tr></thead><tbody id="active-vehicles"></tbody></table></div><div class="empty-state hidden" id="active-empty"><span>▦</span><strong>No active vehicles</strong><p>Validated entries will appear here.</p></div></article>
+        </section>
+
+        <section class="page" id="page-slots">
+          <div class="page-heading slots-heading"><div><div class="eyebrow">LOT A · LIVE SLOT MAP</div><h1>Parking spaces<span class="title-period">.</span></h1><p class="page-subtitle">Live slot availability from the parking database.</p></div><div class="slot-summary"><span class="legend-dot green"></span><span id="slot-available-label">— available</span><span class="legend-dot navy"></span><span id="slot-occupied-label">— occupied</span></div></div>
+          <article class="panel floor-panel"><div class="floor-top"><div class="floor-label"><span class="floor-icon">⌑</span><div><strong>MAIN PARKING AREA</strong><span>ZONE A <i>·</i> 90° ANGLE PARKING</span></div></div><span class="floor-status"><i class="live-dot"></i> LIVE STATUS</span></div><div class="driveway"><span>↓</span><span>ONE-WAY DRIVE AISLE</span><span>↓</span></div><div class="slot-grid" id="slot-grid"></div><div class="floor-exit"><span>← ENTRY / EXIT</span><span>PEDESTRIAN WALKWAY</span><span>←</span></div></article>
+          <div class="slot-footnote"><span>ⓘ</span>Spaces are assigned automatically in numerical order. Selecting an occupied space shows its live parking record.</div>
+        </section>
+
+        <section class="page" id="page-analytics">
+          <div class="page-heading"><div class="eyebrow">DATA &amp; INSIGHTS · DATABASE-BACKED</div><h1>Parking analytics<span class="title-period">.</span></h1><p class="page-subtitle">Explore actual entry records from your SQLite parking database.</p></div>
+          <div class="stats-grid analytics-stats"><article class="stat-card"><div class="stat-head"><span>Current occupancy</span><span class="stat-icon icon-blue">◉</span></div><div class="stat-value" id="analytics-occupancy">—</div><div class="stat-foot">Share of configured lot capacity</div></article><article class="stat-card"><div class="stat-head"><span>Vehicle entries today</span><span class="stat-icon icon-violet">↘</span></div><div class="stat-value" id="analytics-today">—</div><div class="stat-foot">New parking visits recorded today</div></article><article class="stat-card"><div class="stat-head"><span>Spaces available</span><span class="stat-icon icon-green">▦</span></div><div class="stat-value" id="analytics-available">—</div><div class="stat-foot">Live availability across the lot</div></article></div>
+          <div class="analytics-grid"><article class="panel analytics-chart-panel"><div class="panel-heading"><div><h2>Hourly entry pattern</h2><p>New vehicle arrivals by local hour, today</p></div><span class="chart-caption">ACTUAL RECORDS</span></div><div class="analytics-chart-box"><canvas id="analytics-hourly-chart" aria-label="Today's vehicle entries per hour"></canvas></div></article><article class="panel analytics-chart-panel"><div class="panel-heading"><div><h2>Seven-day overview</h2><p>Recorded entries per calendar day</p></div><span class="chart-caption">ACTUAL RECORDS</span></div><div class="analytics-chart-box"><canvas id="daily-chart" aria-label="Vehicle entries over the last seven days"></canvas></div></article></div>
+          <div class="analytics-footnote"><span class="live-dot"></span>Charts refresh from SQLite on page load and after each recorded entry or exit. No live operational metrics are hardcoded.</div>
+        </section>
+
+        <section class="page" id="page-testing">
+          <div class="page-heading"><div class="eyebrow">QUALITY ASSURANCE · DFA ACCEPTANCE TESTS</div><h1>Test suite<span class="title-period">.</span></h1><p class="page-subtitle">Exercise the real DFA with representative accepted and rejected strings.</p></div>
+          <article class="panel tests-panel"><div class="panel-heading"><div><h2>Registration format cases</h2><p>Expected and actual outcomes are both produced by the application DFA.</p></div><button class="button button-soft" id="rerun-tests" type="button">↻ Run again</button></div><div class="test-summary" id="test-summary"><span class="test-spinner"></span>Running DFA test cases…</div><div class="test-case-list" id="test-case-list"></div></article>
+          <article class="panel theory-note test-theory"><div class="theory-symbol">ℒ</div><div><strong>Recognized language</strong><p>The language is <code>[A–Z]{2}[0–9]{2}[A–Z]{1,2}[0–9]{4}</code> after uppercasing and removal of spaces and hyphens. This simplified demonstration pattern is not a statement about every Indian registration format.</p></div></article>
+        </section>
+
+        <footer class="app-footer"><span>Parkwise <span class="footer-separator">·</span> DFA Parking Management</span><span>Academic demonstration <span class="footer-separator">·</span> No government records accessed</span></footer>
+      </main>
+    </div>
+  </div>
+  <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
